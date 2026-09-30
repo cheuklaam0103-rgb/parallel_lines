@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>趣味數學：認識平行線與相交線</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Friendly rounded text -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif, system-ui;
+            background-color: #FFFDF0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn-bounce {
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
+        }
+        .btn-bounce:active {
+            transform: scale(0.94);
+        }
+
+        .pulse-glow {
+            animation: pulse-glow-anim 2s infinite;
+        }
+        @keyframes pulse-glow-anim {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6)); }
+            50% { transform: scale(1.03); filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.9)); }
+        }
+
+        /* Confetti Canvas */
+        #confettiCanvas {
+            pointer-events: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 99;
+        }
+
+        /* Line canvas container hover */
+        .interactive-canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-amber-100 border-b-4 border-amber-300 px-4 py-3 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-400 text-white p-2.5 rounded-2xl shadow-inner text-xl sm:text-2xl">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black text-amber-900 tracking-wide">認識平行線與相交線</h1>
+                    <p class="text-xs sm:text-sm font-bold text-amber-700">快樂學習數學 • 特殊學習需要友善設計</p>
+                </div>
+            </div>
+
+            <!-- Global Audio Switch -->
+            <button id="soundToggleBtn" onclick="toggleAudio()" class="btn-bounce bg-white border-2 border-amber-300 hover:bg-amber-50 text-amber-800 px-4 py-2 rounded-2xl font-bold flex items-center space-x-2 shadow-sm text-base">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-xl text-amber-500"></i>
+                <span id="soundText" class="hidden sm:inline">聲音啟動</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Level Stepper Bar -->
+    <div class="bg-amber-50/80 border-b-2 border-amber-200/60 py-3 px-2">
+        <div class="max-w-3xl mx-auto flex justify-around items-center">
+            <button onclick="switchLevel(1)" id="nav-btn-1" class="btn-bounce px-3 py-2 sm:px-5 sm:py-2.5 rounded-2xl font-black text-sm sm:text-lg flex items-center space-x-2 border-3 border-amber-400 bg-amber-400 text-amber-950 shadow-md">
+                <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white text-amber-900 flex items-center justify-center font-black text-base shadow-inner">1</span>
+                <span>第一關：認識線條</span>
+            </button>
+            
+            <i class="fa-solid fa-chevron-right text-amber-300 text-lg sm:text-xl"></i>
+
+            <button onclick="switchLevel(2)" id="nav-btn-2" class="btn-bounce px-3 py-2 sm:px-5 sm:py-2.5 rounded-2xl font-black text-sm sm:text-lg flex items-center space-x-2 border-2 border-slate-300 bg-white text-slate-600 hover:bg-amber-50">
+                <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-black text-base">2</span>
+                <span>第二關：延長相交</span>
+            </button>
+
+            <i class="fa-solid fa-chevron-right text-amber-300 text-lg sm:text-xl"></i>
+
+            <button onclick="switchLevel(3)" id="nav-btn-3" class="btn-bounce px-3 py-2 sm:px-5 sm:py-2.5 rounded-2xl font-black text-sm sm:text-lg flex items-center space-x-2 border-2 border-slate-300 bg-white text-slate-600 hover:bg-amber-50">
+                <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-black text-base">3</span>
+                <span>第三關：多條平行線</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Dynamic Content Container -->
+    <main class="max-w-4xl mx-auto w-full p-4 sm:p-6 flex-grow">
+
+        <!-- LEVEL 1 CONTAINER -->
+        <div id="level-1" class="space-y-6">
+            <!-- Concept Cards Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Parallel Lines Concept -->
+                <div class="bg-sky-50 border-4 border-sky-300 rounded-3xl p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <span class="bg-sky-500 text-white p-2 rounded-xl text-xl"><i class="fa-solid fa-train text-2xl"></i></span>
+                        <h2 class="text-xl font-black text-sky-900">什麼是「平行線」？</h2>
+                    </div>
+                    <p class="text-base font-bold text-sky-800 mb-3 leading-relaxed">
+                        就像<span class="bg-sky-200 px-2 py-0.5 rounded-lg text-sky-950 font-black">火車軌道</span>一樣！兩條線永遠保持一樣的距離，無論延伸多長，<span class="underline decoration-sky-500 decoration-4">永遠不會碰在一起</span>！
+                    </p>
+                    <!-- Animated Canvas Preview -->
+                    <div class="bg-white rounded-2xl border-2 border-sky-200 p-3 h-36 flex flex-col justify-center items-center relative overflow-hidden">
+                        <div class="w-full h-2 bg-amber-600 rounded my-3 relative flex items-center justify-around">
+                            <div class="h-6 w-2 bg-amber-800 rounded"></div>
+                            <div class="h-6 w-2 bg-amber-800 rounded"></div>
+                            <div class="h-6 w-2 bg-amber-800 rounded"></div>
+                        </div>
+                        <div class="w-full h-2 bg-amber-600 rounded my-3"></div>
+                        <span class="absolute right-2 bottom-2 text-xs font-bold bg-sky-100 text-sky-800 px-2 py-1 rounded-full"><i class="fa-solid fa-shield-heart"></i> 永遠不會碰撞</span>
+                    </div>
+                </div>
+
+                <!-- Intersecting Lines Concept -->
+                <div class="bg-rose-50 border-4 border-rose-300 rounded-3xl p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <span class="bg-rose-500 text-white p-2 rounded-xl text-xl"><i class="fa-solid fa-road text-2xl"></i></span>
+                        <h2 class="text-xl font-black text-rose-900">什麼是「相交線」？</h2>
+                    </div>
+                    <p class="text-base font-bold text-rose-800 mb-3 leading-relaxed">
+                        就像<span class="bg-rose-200 px-2 py-0.5 rounded-lg text-rose-950 font-black">十字路口</span>一樣！兩條線會跨過對方，交叉在同一個點，<span class="underline decoration-rose-500 decoration-4">碰在一起（相交）</span>！
+                    </p>
+                    <!-- Animated Canvas Preview -->
+                    <div class="bg-white rounded-2xl border-2 border-rose-200 p-3 h-36 flex justify-center items-center relative overflow-hidden">
+                        <div class="w-full h-2 bg-rose-500 rounded absolute rotate-12"></div>
+                        <div class="w-full h-2 bg-rose-500 rounded absolute -rotate-12"></div>
+                        <div class="w-5 h-5 bg-rose-600 rounded-full border-4 border-white absolute z-10 animate-ping"></div>
+                        <div class="w-5 h-5 bg-rose-600 rounded-full border-2 border-white absolute z-10 flex items-center justify-center text-white text-[10px] font-bold"><i class="fa-solid fa-star"></i></div>
+                        <span class="absolute right-2 bottom-2 text-xs font-bold bg-rose-100 text-rose-800 px-2 py-1 rounded-full"><i class="fa-solid fa-circle-exclamation"></i> 碰到了！有交點</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Line Stretching Sandbox -->
+            <div class="bg-amber-100/60 border-3 border-amber-300 rounded-3xl p-5">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+                    <h3 class="text-lg font-black text-amber-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-hand-pointer text-amber-600"></i>
+                        <span>試試看：拖動滑塊，拉長線條看看會發生什麼！</span>
+                    </h3>
+                    <!-- Control Modes -->
+                    <div class="flex space-x-2">
+                        <button onclick="setLevel1Mode('parallel')" id="l1-mode-parallel" class="btn-bounce px-4 py-2 rounded-xl text-sm font-black border-2 border-sky-400 bg-sky-500 text-white shadow">
+                            測試平行線
+                        </button>
+                        <button onclick="setLevel1Mode('intersect')" id="l1-mode-intersect" class="btn-bounce px-4 py-2 rounded-xl text-sm font-black border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-100">
+                            測試相交線
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border-2 border-amber-200 p-4 flex flex-col items-center">
+                    <canvas id="l1Canvas" width="600" height="180" class="w-full max-w-full rounded-xl bg-amber-50/50 border border-amber-200 cursor-pointer"></canvas>
+                    
+                    <div class="w-full max-w-md mt-4 flex items-center space-x-4">
+                        <span class="font-bold text-amber-900 text-sm whitespace-nowrap"><i class="fa-solid fa-arrows-left-right"></i> 拉長線條:</span>
+                        <input type="range" id="l1Slider" min="10" max="100" value="30" class="w-full h-3 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500" oninput="drawL1Sandbox()">
+                    </div>
+                    <div id="l1SandboxResult" class="mt-3 font-black text-base px-4 py-1.5 rounded-full bg-sky-100 text-sky-900 border border-sky-300">
+                        <i class="fa-solid fa-circle-check text-sky-600 mr-1"></i> 兩條線一直平行，永遠不碰面！
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Section Level 1 -->
+            <div class="bg-white border-4 border-amber-300 rounded-3xl p-6 shadow-md">
+                <div class="flex items-center justify-between mb-4 border-b border-amber-100 pb-3">
+                    <h3 class="text-xl font-black text-amber-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-question text-amber-500 text-2xl"></i>
+                        <span>小挑戰：這是一組「平行線」還是「相交線」？</span>
+                    </h3>
+                    <div class="bg-amber-100 text-amber-900 font-black px-4 py-1 rounded-full text-sm" id="l1-quiz-counter">
+                        題目 1 / 4
+                    </div>
+                </div>
+
+                <!-- Quiz Canvas Display -->
+                <div class="flex flex-col items-center">
+                    <div class="w-full max-w-md h-44 bg-amber-50/60 rounded-2xl border-2 border-amber-200 flex items-center justify-center relative overflow-hidden mb-6 shadow-inner">
+                        <canvas id="l1QuizCanvas" width="400" height="160" class="max-w-full max-h-full"></canvas>
+                    </div>
+
+                    <!-- 2 Big Buttons for SEN accessibility -->
+                    <div class="grid grid-cols-2 gap-4 w-full max-w-lg">
+                        <button onclick="checkL1Answer('parallel')" class="btn-bounce bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white border-b-8 border-sky-700 py-5 rounded-3xl font-black text-xl sm:text-2xl shadow-lg flex flex-col items-center justify-center space-y-1">
+                            <i class="fa-solid fa-equals text-3xl"></i>
+                            <span>平行線</span>
+                            <span class="text-xs text-sky-100 font-normal">（永不碰撞）</span>
+                        </button>
+                        <button onclick="checkL1Answer('intersect')" class="btn-bounce bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white border-b-8 border-rose-700 py-5 rounded-3xl font-black text-xl sm:text-2xl shadow-lg flex flex-col items-center justify-center space-y-1">
+                            <i class="fa-solid fa-xmark text-3xl"></i>
+                            <span>相交線</span>
+                            <span class="text-xs text-rose-100 font-normal">（碰在一起）</span>
+                        </button>
+                    </div>
+
+                    <!-- Instant Feedback Message Box -->
+                    <div id="l1-feedback" class="mt-5 w-full max-w-lg min-h-[50px] rounded-2xl flex items-center justify-center text-lg font-black hidden transition-all"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEVEL 2 CONTAINER -->
+        <div id="level-2" class="space-y-6 hidden">
+            <div class="bg-indigo-50 border-4 border-indigo-200 rounded-3xl p-5">
+                <div class="flex items-start space-x-3">
+                    <span class="bg-indigo-500 text-white p-3 rounded-2xl text-2xl shadow"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                    <div>
+                        <h2 class="text-xl font-black text-indigo-950 mb-1">第二關教學：延長後會相交嗎？</h2>
+                        <p class="text-base font-bold text-indigo-800 leading-relaxed">
+                            有些線雖然現在<span class="bg-indigo-200 text-indigo-950 px-2 py-0.5 rounded-md">看起來還沒碰到</span>，但只要我們把它們向前<span class="underline decoration-indigo-500 decoration-4">拉長（延長）</span>，它們最終會在前面撞在一起！所以它們<span class="text-rose-600 font-black">不是平行線</span>喔！
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level 2 Interactive Extension Area -->
+            <div class="bg-white border-4 border-indigo-200 rounded-3xl p-6 shadow-md flex flex-col items-center">
+                <div class="w-full flex justify-between items-center mb-4">
+                    <span class="font-black text-indigo-900 text-lg flex items-center space-x-2">
+                        <i class="fa-solid fa-eye text-indigo-500"></i>
+                        <span>觀察題：這兩條線延長後，會相交嗎？</span>
+                    </span>
+                    <span id="l2-question-indicator" class="bg-indigo-100 text-indigo-900 font-black px-3 py-1 rounded-full text-sm">題目 1 / 3</span>
+                </div>
+
+                <!-- Extension Animation Canvas -->
+                <div class="w-full max-w-xl h-60 bg-slate-900 rounded-3xl border-4 border-slate-700 flex items-center justify-center relative overflow-hidden shadow-2xl mb-6">
+                    <canvas id="l2Canvas" width="550" height="230" class="max-w-full max-h-full"></canvas>
+                    
+                    <!-- Floating Intersection Alert Badge -->
+                    <div id="l2-hit-badge" class="absolute bg-rose-500 text-white font-black text-sm px-4 py-2 rounded-full shadow-lg border-2 border-white flex items-center space-x-2 hidden animate-bounce">
+                        <i class="fa-solid fa-bullseye text-amber-300 text-lg"></i>
+                        <span>嗶嗶！延伸後相交了！</span>
+                    </div>
+                </div>
+
+                <!-- Action Button: Extend Lines Animation -->
+                <div class="mb-6">
+                    <button id="l2-extend-btn" onclick="startL2ExtensionAnimation()" class="btn-bounce bg-amber-400 hover:bg-amber-500 text-amber-950 border-b-4 border-amber-600 px-8 py-3 rounded-2xl font-black text-lg shadow-md flex items-center space-x-2">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        <span>點擊「拉長線條看看！」</span>
+                    </button>
+                </div>
+
+                <!-- Answer Choice Buttons -->
+                <div class="grid grid-cols-2 gap-4 w-full max-w-md">
+                    <button onclick="checkL2Answer(true)" class="btn-bounce bg-rose-500 hover:bg-rose-600 text-white border-b-6 border-rose-700 py-4 rounded-2xl font-black text-xl shadow flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-circle-check text-2xl"></i>
+                        <span>會相交</span>
+                    </button>
+                    <button onclick="checkL2Answer(false)" class="btn-bounce bg-sky-500 hover:bg-sky-600 text-white border-b-6 border-sky-700 py-4 rounded-2xl font-black text-xl shadow flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-circle-xmark text-2xl"></i>
+                        <span>不會（平行線）</span>
+                    </button>
+                </div>
+
+                <!-- Feedback area -->
+                <div id="l2-feedback" class="mt-5 w-full max-w-md min-h-[50px] rounded-2xl flex items-center justify-center text-lg font-black hidden transition-all"></div>
+            </div>
+        </div>
+
+        <!-- LEVEL 3 CONTAINER -->
+        <div id="level-3" class="space-y-6 hidden">
+            <!-- Level 3 Concept Banner -->
+            <div class="bg-emerald-50 border-4 border-emerald-200 rounded-3xl p-5">
+                <div class="flex items-start space-x-3">
+                    <span class="bg-emerald-500 text-white p-3 rounded-2xl text-2xl shadow"><i class="fa-solid fa-layer-group"></i></span>
+                    <div>
+                        <h2 class="text-xl font-black text-emerald-950 mb-1">第三關教學：平行線不只兩條！</h2>
+                        <p class="text-base font-bold text-emerald-800 leading-relaxed">
+                            盲點破解：平行線不一定只有 2 條！<span class="bg-emerald-200 text-emerald-950 px-2 py-0.5 rounded-md">3條、4條、甚至10條</span>只要方向一致、保持距離，全部都可以稱為「平行線」！例如：欄杆、百葉窗、斑馬線。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Line Generator -->
+            <div class="bg-white border-4 border-emerald-200 rounded-3xl p-6 shadow-md flex flex-col items-center">
+                <h3 class="text-lg font-black text-emerald-900 mb-2 flex items-center space-x-2">
+                    <i class="fa-solid fa-plus-circle text-emerald-500"></i>
+                    <span>點擊按鈕，增加更多平行線：</span>
+                </h3>
+
+                <!-- Canvas Preview for Dynamic Lines -->
+                <div class="w-full max-w-lg h-52 bg-emerald-50/70 rounded-2xl border-2 border-emerald-200 flex items-center justify-center relative overflow-hidden mb-4 shadow-inner">
+                    <canvas id="l3GeneratorCanvas" width="500" height="190" class="max-w-full max-h-full"></canvas>
+                </div>
+
+                <!-- Interactive Buttons -->
+                <div class="flex flex-wrap justify-center gap-3 mb-3">
+                    <button onclick="addL3Line()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white border-b-4 border-emerald-700 px-6 py-3 rounded-2xl font-black text-lg shadow flex items-center space-x-2">
+                        <i class="fa-solid fa-plus text-xl"></i>
+                        <span>再加一條平行線！</span>
+                    </button>
+                    <button onclick="resetL3Lines()" class="btn-bounce bg-slate-200 hover:bg-slate-300 text-slate-700 border-b-4 border-slate-400 px-5 py-3 rounded-2xl font-black text-base shadow flex items-center space-x-1">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>重設 (2條)</span>
+                    </button>
+                </div>
+
+                <!-- Dynamic Real-life Pattern Icon Label -->
+                <div id="l3-pattern-label" class="bg-emerald-100 text-emerald-900 font-black px-5 py-2 rounded-full text-base flex items-center space-x-2 border border-emerald-300">
+                    <i class="fa-solid fa-grip-lines text-emerald-600"></i>
+                    <span>目前有 2 條平行線 (像火車軌)</span>
+                </div>
+            </div>
+
+            <!-- Minigame: Find All Parallel Lines -->
+            <div class="bg-amber-100/80 border-4 border-amber-300 rounded-3xl p-6 shadow-md flex flex-col items-center">
+                <div class="w-full flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
+                    <div>
+                        <h3 class="text-xl font-black text-amber-950 flex items-center space-x-2">
+                            <i class="fa-solid fa-gamepad text-amber-600 text-2xl"></i>
+                            <span>小遊戲：找出圖畫中「所有互相對應的平行線」！</span>
+                        </h3>
+                        <p class="text-xs font-bold text-amber-800">點擊畫面上互相平行的木柵欄，把所有平行線找出來吧！</p>
+                    </div>
+                    <div class="bg-white border-2 border-amber-300 px-4 py-1.5 rounded-2xl font-black text-amber-900 shadow-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-star text-amber-400 text-xl"></i>
+                        <span id="l3-found-counter">進度: 0 / 4 條</span>
+                    </div>
+                </div>
+
+                <!-- Game Scene Canvas -->
+                <div class="w-full max-w-xl bg-sky-100 rounded-3xl border-4 border-amber-300 overflow-hidden shadow-lg relative flex justify-center items-center">
+                    <canvas id="l3GameCanvas" width="550" height="280" class="interactive-canvas cursor-pointer max-w-full"></canvas>
+                </div>
+
+                <!-- Win Badge popup container -->
+                <div id="l3-win-badge" class="mt-4 p-4 bg-amber-400 border-4 border-amber-500 rounded-2xl text-amber-950 font-black text-lg text-center shadow-xl hidden animate-bounce">
+                    <i class="fa-solid fa-trophy text-3xl text-amber-800 mb-1 block"></i>
+                    太棒了！你找出了全部 4 條平行線！獲得「平行線小大師」榮譽徽章！ 🎉
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Confetti Particle Canvas overlay -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Footer -->
+    <footer class="bg-amber-100 border-t-2 border-amber-200 py-3 px-4 text-center text-xs font-bold text-amber-800">
+        <p>為特殊學習需要（SEN）學生用心打造 • 多感官互動數學課堂</p>
+    </footer>
+
+    <script>
+        /* Global App State */
+        let currentLevel = 1;
+        let audioMuted = false;
+        let audioCtx = null;
+
+        /* Level 1 State */
+        let l1SandboxMode = 'parallel'; // 'parallel' or 'intersect'
+        let l1QuizIndex = 0;
+        const l1QuizQuestions = [
+            { type: 'parallel', angle1: 20, angle2: 20, offset: 35 },
+            { type: 'intersect', angle1: 10, angle2: -35, offset: 0 },
+            { type: 'parallel', angle1: -45, angle2: -45, offset: 40 },
+            { type: 'intersect', angle1: 45, angle2: 0, offset: 10 }
+        ];
+
+        /* Level 2 State */
+        let l2QuestionIndex = 0;
+        let l2IsExtending = false;
+        let l2Progress = 0; // 0 to 1 animation step
+        let l2AnimFrame = null;
+        const l2Questions = [
+            // Question 1: Appears non-intersecting, but will intersect upon extension
+            { x1: 50, y1: 170, x2: 280, y2: 120, x3: 50, y3: 40, x4: 250, y4: 70, willIntersect: true },
+            // Question 2: Perfectly parallel
+            { x1: 60, y1: 160, x2: 300, y2: 80, x3: 60, y3: 110, x4: 300, y4: 30, willIntersect: false },
+            // Question 3: Strong tilt intersection
+            { x1: 80, y1: 180, x2: 260, y2: 140, x3: 80, y3: 30, x4: 280, y4: 90, willIntersect: true }
+        ];
+
+        /* Level 3 State */
+        let l3LineCount = 2;
+        let l3GameFound = [false, false, false, false]; // 4 parallel fence posts
+        // Target lines in Level 3 minigame
+        const l3GameLines = [
+            { id: 0, x: 120, isParallel: true },
+            { id: 1, x: 200, isParallel: true },
+            { id: 2, x: 280, isParallel: true },
+            { id: 3, x: 360, isParallel: true },
+            { id: 4, x: 440, isParallel: false, slant: 35 } // Slanted fence broken line
+        ];
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (audioMuted) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // Cheerful rising two-tone chord
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.15); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.3); // G5
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'wrong') {
+                // Gentle low retry tone
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now); // A3
+                osc.frequency.setValueAtTime(196, now + 0.15); // G3
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'pop') {
+                // Short click / pop sound
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'fanfare') {
+                // Level completion celebration sound
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.type = 'triangle';
+                    o.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    g.gain.setValueAtTime(0.25, now + idx * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                    o.start(now + idx * 0.1);
+                    o.stop(now + idx * 0.1 + 0.3);
+                });
+            }
+        }
+
+        function toggleAudio() {
+            audioMuted = !audioMuted;
+            const icon = document.getElementById('soundIcon');
+            const text = document.getElementById('soundText');
+            if (audioMuted) {
+                icon.className = 'fa-solid fa-volume-xmark text-xl text-slate-400';
+                text.innerText = '靜音中';
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-xl text-amber-500';
+                text.innerText = '聲音啟動';
+                playSound('pop');
+            }
+        }
+
+        function switchLevel(levelNum) {
+            playSound('pop');
+            currentLevel = levelNum;
+
+            // Hide all levels
+            document.getElementById('level-1').classList.add('hidden');
+            document.getElementById('level-2').classList.add('hidden');
+            document.getElementById('level-3').classList.add('hidden');
+
+            // Reset navigation styles
+            for (let i = 1; i <= 3; i++) {
+                const navBtn = document.getElementById(`nav-btn-${i}`);
+                if (i === levelNum) {
+                    navBtn.className = "btn-bounce px-3 py-2 sm:px-5 sm:py-2.5 rounded-2xl font-black text-sm sm:text-lg flex items-center space-x-2 border-3 border-amber-400 bg-amber-400 text-amber-950 shadow-md";
+                    navBtn.children[0].className = "w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white text-amber-900 flex items-center justify-center font-black text-base shadow-inner";
+                } else {
+                    navBtn.className = "btn-bounce px-3 py-2 sm:px-5 sm:py-2.5 rounded-2xl font-black text-sm sm:text-lg flex items-center space-x-2 border-2 border-slate-300 bg-white text-slate-600 hover:bg-amber-50";
+                    navBtn.children[0].className = "w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-black text-base";
+                }
+            }
+
+            // Show selected level and render
+            document.getElementById(`level-${levelNum}`).classList.remove('hidden');
+
+            if (levelNum === 1) {
+                drawL1Sandbox();
+                drawL1Quiz();
+            } else if (levelNum === 2) {
+                resetL2State();
+            } else if (levelNum === 3) {
+                drawL3Generator();
+                drawL3Game();
+            }
+        }
+
+        function setLevel1Mode(mode) {
+            playSound('pop');
+            l1SandboxMode = mode;
+            const btnP = document.getElementById('l1-mode-parallel');
+            const btnI = document.getElementById('l1-mode-intersect');
+            
+            if (mode === 'parallel') {
+                btnP.className = 'btn-bounce px-4 py-2 rounded-xl text-sm font-black border-2 border-sky-400 bg-sky-500 text-white shadow';
+                btnI.className = 'btn-bounce px-4 py-2 rounded-xl text-sm font-black border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-100';
+            } else {
+                btnI.className = 'btn-bounce px-4 py-2 rounded-xl text-sm font-black border-2 border-rose-400 bg-rose-500 text-white shadow';
+                btnP.className = 'btn-bounce px-4 py-2 rounded-xl text-sm font-black border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-100';
+            }
+            drawL1Sandbox();
+        }
+
+        function drawL1Sandbox() {
+            const canvas = document.getElementById('l1Canvas');
+            const ctx = canvas.getContext('2d');
+            const sliderVal = parseInt(document.getElementById('l1Slider').value);
+            const resultBox = document.getElementById('l1SandboxResult');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const len = 40 + sliderVal * 2.2;
+
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+
+            if (l1SandboxMode === 'parallel') {
+                // Draw 2 parallel lines
+                ctx.strokeStyle = '#0284c7'; // Sky blue
+                
+                // Top line
+                ctx.beginPath();
+                ctx.moveTo(centerX - len, centerY - 30);
+                ctx.lineTo(centerX + len, centerY - 30);
+                ctx.stroke();
+
+                // Bottom line
+                ctx.beginPath();
+                ctx.moveTo(centerX - len, centerY + 30);
+                ctx.lineTo(centerX + len, centerY + 30);
+                ctx.stroke();
+
+                resultBox.className = "mt-3 font-black text-base px-4 py-1.5 rounded-full bg-sky-100 text-sky-900 border border-sky-300";
+                resultBox.innerHTML = '<i class="fa-solid fa-circle-check text-sky-600 mr-1"></i> 兩條線方向一致，距離一樣，永遠不碰面！（平行線）';
+            } else {
+                // Draw 2 intersecting lines
+                ctx.strokeStyle = '#e11d48'; // Rose red
+                
+                // Slanted Line 1
+                ctx.beginPath();
+                ctx.moveTo(centerX - len, centerY - len * 0.4);
+                ctx.lineTo(centerX + len, centerY + len * 0.4);
+                ctx.stroke();
+
+                // Slanted Line 2
+                ctx.beginPath();
+                ctx.moveTo(centerX - len, centerY + len * 0.4);
+                ctx.lineTo(centerX + len, centerY - len * 0.4);
+                ctx.stroke();
+
+                // Intersection Red Dot
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                resultBox.className = "mt-3 font-black text-base px-4 py-1.5 rounded-full bg-rose-100 text-rose-900 border border-rose-300";
+                resultBox.innerHTML = '<i class="fa-solid fa-burst text-rose-600 mr-1"></i> 兩條線在中間交叉碰在一起了！（相交線）';
+            }
+        }
+
+        function drawL1Quiz() {
+            const canvas = document.getElementById('l1QuizCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const q = l1QuizQuestions[l1QuizIndex];
+            document.getElementById('l1-quiz-counter').innerText = `題目 ${l1QuizIndex + 1} / ${l1QuizQuestions.length}`;
+
+            ctx.lineWidth = 7;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#0f172a'; // Dark slate for clear visual contrast
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Line 1
+            ctx.save();
+            ctx.translate(centerX, centerY - q.offset / 2);
+            ctx.rotate((q.angle1 * Math.PI) / 180);
+            ctx.beginPath();
+            ctx.moveTo(-100, 0);
+            ctx.lineTo(100, 0);
+            ctx.stroke();
+            ctx.restore();
+
+            // Line 2
+            ctx.save();
+            ctx.translate(centerX, centerY + q.offset / 2);
+            ctx.rotate((q.angle2 * Math.PI) / 180);
+            ctx.beginPath();
+            ctx.moveTo(-100, 0);
+            ctx.lineTo(100, 0);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function checkL1Answer(userChoice) {
+            const currentQ = l1QuizQuestions[l1QuizIndex];
+            const isCorrect = userChoice === currentQ.type;
+            const feedback = document.getElementById('l1-feedback');
+
+            feedback.classList.remove('hidden');
+            if (isCorrect) {
+                playSound('correct');
+                feedback.className = 'mt-5 w-full max-w-lg p-4 rounded-2xl flex items-center justify-center text-lg font-black bg-emerald-100 text-emerald-900 border-2 border-emerald-400 shadow';
+                feedback.innerHTML = '<i class="fa-solid fa-face-laugh-beam text-emerald-600 text-2xl mr-2"></i> 答對了！太棒了！';
+                
+                setTimeout(() => {
+                    feedback.classList.add('hidden');
+                    l1QuizIndex = (l1QuizIndex + 1) % l1QuizQuestions.length;
+                    drawL1Quiz();
+                }, 1400);
+            } else {
+                playSound('wrong');
+                feedback.className = 'mt-5 w-full max-w-lg p-4 rounded-2xl flex items-center justify-center text-lg font-black bg-amber-100 text-amber-900 border-2 border-amber-400 shadow';
+                feedback.innerHTML = '<i class="fa-solid fa-lightbulb text-amber-600 text-2xl mr-2"></i> 再試一次看看！觀察兩條線會不會碰面。';
+            }
+        }
+
+        function resetL2State() {
+            l2IsExtending = false;
+            l2Progress = 0;
+            if (l2AnimFrame) cancelAnimationFrame(l2AnimFrame);
+            document.getElementById('l2-hit-badge').classList.add('hidden');
+            document.getElementById('l2-feedback').classList.add('hidden');
+            document.getElementById('l2-question-indicator').innerText = `題目 ${l2QuestionIndex + 1} / ${l2Questions.length}`;
+            drawL2Canvas(0);
+        }
+
+        function drawL2Canvas(progress) {
+            const canvas = document.getElementById('l2Canvas');
+            const ctx = canvas.getContext('2d');
+            const q = l2Questions[l2QuestionIndex];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw original solid lines
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+
+            // Line 1 Solid
+            ctx.strokeStyle = '#38bdf8'; // Bright cyan
+            ctx.beginPath();
+            ctx.moveTo(q.x1, q.y1);
+            ctx.lineTo(q.x2, q.y2);
+            ctx.stroke();
+
+            // Line 2 Solid
+            ctx.strokeStyle = '#fbbf24'; // Bright amber
+            ctx.beginPath();
+            ctx.moveTo(q.x3, q.y3);
+            ctx.lineTo(q.x4, q.y4);
+            ctx.stroke();
+
+            // Extended Dotted Portion
+            if (progress > 0) {
+                ctx.setLineDash([8, 6]);
+                ctx.lineWidth = 4;
+
+                // Extension for Line 1
+                const dx1 = q.x2 - q.x1;
+                const dy1 = q.y2 - q.y1;
+                ctx.strokeStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.moveTo(q.x2, q.y2);
+                ctx.lineTo(q.x2 + dx1 * progress * 1.5, q.y2 + dy1 * progress * 1.5);
+                ctx.stroke();
+
+                // Extension for Line 2
+                const dx2 = q.x4 - q.x3;
+                const dy2 = q.y4 - q.y3;
+                ctx.strokeStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.moveTo(q.x4, q.y4);
+                ctx.lineTo(q.x4 + dx2 * progress * 1.5, q.y4 + dy2 * progress * 1.5);
+                ctx.stroke();
+
+                ctx.setLineDash([]); // Reset line dash
+
+                // Check intersection highlight if applicable
+                if (q.willIntersect && progress > 0.7) {
+                    // Approximate intersection point display
+                    const hitX = q.x2 + dx1 * 0.9;
+                    const hitY = q.y2 + dy1 * 0.9;
+                    
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.beginPath();
+                    ctx.arc(hitX, hitY, 14, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    document.getElementById('l2-hit-badge').classList.remove('hidden');
+                }
+            }
+        }
+
+        function startL2ExtensionAnimation() {
+            playSound('pop');
+            l2Progress = 0;
+            document.getElementById('l2-hit-badge').classList.add('hidden');
+            
+            function animate() {
+                l2Progress += 0.025;
+                drawL2Canvas(l2Progress);
+                if (l2Progress < 1.0) {
+                    l2AnimFrame = requestAnimationFrame(animate);
+                }
+            }
+            if (l2AnimFrame) cancelAnimationFrame(l2AnimFrame);
+            animate();
+        }
+
+        function checkL2Answer(userThinksIntersects) {
+            const q = l2Questions[l2QuestionIndex];
+            const isCorrect = userThinksIntersects === q.willIntersect;
+            const feedback = document.getElementById('l2-feedback');
+
+            feedback.classList.remove('hidden');
+            if (isCorrect) {
+                playSound('correct');
+                feedback.className = 'mt-5 w-full max-w-md p-4 rounded-2xl flex items-center justify-center text-lg font-black bg-emerald-100 text-emerald-900 border-2 border-emerald-400 shadow';
+                feedback.innerHTML = '<i class="fa-solid fa-star text-emerald-600 text-2xl mr-2"></i> 答對了！猜得非常準確！';
+
+                setTimeout(() => {
+                    l2QuestionIndex = (l2QuestionIndex + 1) % l2Questions.length;
+                    resetL2State();
+                }, 1600);
+            } else {
+                playSound('wrong');
+                feedback.className = 'mt-5 w-full max-w-md p-4 rounded-2xl flex items-center justify-center text-lg font-black bg-amber-100 text-amber-900 border-2 border-amber-400 shadow';
+                feedback.innerHTML = '<i class="fa-solid fa-hand-pointer text-amber-600 text-2xl mr-2"></i> 按一下「拉長線條看看！」，再觀察看看喔！';
+            }
+        }
+
+        function addL3Line() {
+            if (l3LineCount < 8) {
+                l3LineCount++;
+                playSound('pop');
+                drawL3Generator();
+            }
+        }
+
+        function resetL3Lines() {
+            l3LineCount = 2;
+            playSound('pop');
+            drawL3Generator();
+        }
+
+        function drawL3Generator() {
+            const canvas = document.getElementById('l3GeneratorCanvas');
+            const ctx = canvas.getContext('2d');
+            const label = document.getElementById('l3-pattern-label');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const gap = canvas.height / (l3LineCount + 1);
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#059669'; // Emerald green
+            ctx.lineCap = 'round';
+
+            for (let i = 1; i <= l3LineCount; i++) {
+                const y = gap * i;
+                ctx.beginPath();
+                ctx.moveTo(50, y);
+                ctx.lineTo(canvas.width - 50, y);
+                ctx.stroke();
+
+                // Draw end caps/nodes
+                ctx.fillStyle = '#34d399';
+                ctx.beginPath();
+                ctx.arc(50, y, 6, 0, Math.PI * 2);
+                ctx.arc(canvas.width - 50, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Real-world analogue descriptions
+            let analogue = " (像火車軌)";
+            if (l3LineCount === 3) analogue = " (像吉他/琴弦)";
+            if (l3LineCount === 4) analogue = " (像操場跑道)";
+            if (l3LineCount === 5) analogue = " (像五線譜)";
+            if (l3LineCount >= 6) analogue = " (像百葉窗/欄杆)";
+
+            label.innerHTML = `<i class="fa-solid fa-layer-group text-emerald-600 mr-2"></i>目前共有 <span class="text-xl text-emerald-700 mx-1">${l3LineCount}</span> 條平行線 ${analogue}`;
+        }
+
+        function drawL3Game() {
+            const canvas = document.getElementById('l3GameCanvas');
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Fence Grass & Sky Background
+            ctx.fillStyle = '#bae6fd'; // Sky
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#86efac'; // Grass
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+
+            // Horizontal supporting fence beams
+            ctx.fillStyle = '#d97706';
+            ctx.fillRect(40, 70, 470, 16);
+            ctx.fillRect(40, 180, 470, 16);
+
+            // Draw Fence Posts (Lines)
+            l3GameLines.forEach((item, index) => {
+                ctx.save();
+                ctx.translate(item.x, 130);
+
+                if (item.slant) {
+                    ctx.rotate((item.slant * Math.PI) / 180);
+                }
+
+                const isFound = l3GameFound[index];
+
+                // Fence post outline/glow if found
+                if (isFound) {
+                    ctx.shadowColor = '#fbbf24';
+                    ctx.shadowBlur = 15;
+                    ctx.fillStyle = '#f59e0b'; // Glowing Amber
+                } else {
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#b45309'; // Normal Wood
+                }
+
+                // Draw Vertical Post
+                ctx.beginPath();
+                ctx.roundRect(-10, -90, 20, 180, 8);
+                ctx.fill();
+
+                // Draw top cap
+                ctx.fillStyle = isFound ? '#fef08a' : '#78350f';
+                ctx.beginPath();
+                ctx.arc(0, -90, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Checkmark badge if selected
+                if (isFound) {
+                    ctx.fillStyle = '#10b981';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 14, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 16px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('✓', 0, 1);
+                }
+
+                ctx.restore();
+            });
+        }
+
+        // Minigame Touch/Click Listener
+        document.getElementById('l3GameCanvas').addEventListener('click', function (e) {
+            const canvas = document.getElementById('l3GameCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
+
+            l3GameLines.forEach((line, idx) => {
+                // Determine touch target hit box
+                if (Math.abs(clickX - line.x) < 30) {
+                    if (line.isParallel) {
+                        if (!l3GameFound[idx]) {
+                            l3GameFound[idx] = true;
+                            playSound('correct');
+                            checkL3GameWin();
+                        }
+                    } else {
+                        // Slanted non-parallel line clicked
+                        playSound('wrong');
+                    }
+                    drawL3Game();
+                }
+            });
+        });
+
+        function checkL3GameWin() {
+            const count = l3GameFound.filter(Boolean).length;
+            document.getElementById('l3-found-counter').innerText = `進度: ${count} / 4 條`;
+
+            if (count === 4) {
+                playSound('fanfare');
+                document.getElementById('l3-win-badge').classList.remove('hidden');
+                triggerConfetti();
+            }
+        }
+
+        function triggerConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#fbbf24', '#a855f7'];
+
+            for (let i = 0; i < 80; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: (Math.random() - 0.7) * 14,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 10 + 5,
+                    life: 100
+                });
+            }
+
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let active = false;
+
+                particles.forEach(p => {
+                    if (p.life > 0) {
+                        active = true;
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.3; // Gravity
+                        p.life--;
+
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                if (active) {
+                    requestAnimationFrame(render);
+                }
+            }
+            render();
+        }
+
+        /* Initial Setup On Load */
+        window.onload = function () {
+            drawL1Sandbox();
+            drawL1Quiz();
+        };
+    </script>
+</body>
+</html>
